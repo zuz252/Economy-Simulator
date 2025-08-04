@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Selection Demo - Economy Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        .bank-item:hover { background-color: #f9fafb; }
+        .bank-item.selected { background-color: #eff6ff; border-left: 4px solid #3b82f6; }
+        .progress-bar { transition: width 0.3s ease; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Mock data
+        const mockBanks = [
+            {
+                id: '1',
+                rssdId: '1234567',
+                fdicCertificateNumber: '12345',
+                bankName: 'JPMorgan Chase Bank',
+                city: 'New York',
+                state: 'NY',
+                totalAssets: 2500000000000,
+                charterType: 'Commercial Bank',
+                regulator: 'OCC',
+            },
+            {
+                id: '2',
+                rssdId: '2345678',
+                fdicCertificateNumber: '23456',
+                bankName: 'Bank of America',
+                city: 'Charlotte',
+                state: 'NC',
+                totalAssets: 2000000000000,
+                charterType: 'Commercial Bank',
+                regulator: 'OCC',
+            },
+            {
+                id: '3',
+                rssdId: '3456789',
+                fdicCertificateNumber: '34567',
+                bankName: 'Wells Fargo Bank',
+                city: 'San Francisco',
+                state: 'CA',
+                totalAssets: 1800000000000,
+                charterType: 'Commercial Bank',
+                regulator: 'OCC',
+            },
+            {
+                id: '4',
+                rssdId: '4567890',
+                fdicCertificateNumber: '45678',
+                bankName: 'Citibank',
+                city: 'New York',
+                state: 'NY',
+                totalAssets: 1500000000000,
+                charterType: 'Commercial Bank',
+                regulator: 'OCC',
+            },
+            {
+                id: '5',
+                rssdId: '5678901',
+                fdicCertificateNumber: '56789',
+                bankName: 'U.S. Bank',
+                city: 'Minneapolis',
+                state: 'MN',
+                totalAssets: 1200000000000,
+                charterType: 'Commercial Bank',
+                regulator: 'OCC',
+            },
+            {
+                id: '6',
+                rssdId: '6789012',
+                fdicCertificateNumber: '67890',
+                bankName: 'PNC Bank',
+                city: 'Pittsburgh',
+                state: 'PA',
+                totalAssets: 800000000000,
+                charterType: 'Commercial Bank',
+                regulator: 'OCC',
+            },
+            {
+                id: '7',
+                rssdId: '7890123',
+                fdicCertificateNumber: '78901',
+                bankName: 'Capital One Bank',
+                city: 'McLean',
+                state: 'VA',
+                totalAssets: 600000000000,
+                charterType: 'Commercial Bank',
+                regulator: 'OCC',
+            },
+            {
+                id: '8',
+                rssdId: '8901234',
+                fdicCertificateNumber: '89012',
+                bankName: 'TD Bank',
+                city: 'Cherry Hill',
+                state: 'NJ',
+                totalAssets: 500000000000,
+                charterType: 'Commercial Bank',
+                regulator: 'OCC',
+            },
+        ];
+
+        const formatCurrency = (amount) => {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+            }).format(amount);
+        };
+
+        const BankSearchForm = ({ onSearch, isLoading }) => {
+            const [filters, setFilters] = useState({
+                search: '',
+                state: '',
+                charterType: '',
+                regulator: '',
+                minAssets: '',
+                maxAssets: '',
+            });
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onSearch(filters);
+            };
+
+            const handleReset = () => {
+                setFilters({
+                    search: '',
+                    state: '',
+                    charterType: '',
+                    regulator: '',
+                    minAssets: '',
+                    maxAssets: '',
+                });
+                onSearch({});
+            };
+
+            return (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Search Banks</h2>
+                    
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Search
+                                </label>
+                                <input
+                                    type="text"
+                                    value={filters.search}
+                                    onChange={(e) => setFilters({...filters, search: e.target.value})}
+                                    placeholder="Bank name, FDIC cert #, city..."
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    State
+                                </label>
+                                <select
+                                    value={filters.state}
+                                    onChange={(e) => setFilters({...filters, state: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    <option value="">All States</option>
+                                    <option value="NY">New York</option>
+                                    <option value="NC">North Carolina</option>
+                                    <option value="CA">California</option>
+                                    <option value="MN">Minnesota</option>
+                                    <option value="PA">Pennsylvania</option>
+                                    <option value="VA">Virginia</option>
+                                    <option value="NJ">New Jersey</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Charter Type
+                                </label>
+                                <select
+                                    value={filters.charterType}
+                                    onChange={(e) => setFilters({...filters, charterType: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    <option value="">All Types</option>
+                                    <option value="Commercial Bank">Commercial Bank</option>
+                                    <option value="Savings Bank">Savings Bank</option>
+                                    <option value="Credit Union">Credit Union</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Regulator
+                                </label>
+                                <select
+                                    value={filters.regulator}
+                                    onChange={(e) => setFilters({...filters, regulator: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    <option value="">All Regulators</option>
+                                    <option value="OCC">OCC</option>
+                                    <option value="FDIC">FDIC</option>
+                                    <option value="FRB">Federal Reserve</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Min Assets ($)
+                                </label>
+                                <input
+                                    type="number"
+                                    value={filters.minAssets}
+                                    onChange={(e) => setFilters({...filters, minAssets: e.target.value})}
+                                    placeholder="0"
+                                    min="0"
+                                    step="1000000"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Max Assets ($)
+                                </label>
+                                <input
+                                    type="number"
+                                    value={filters.maxAssets}
+                                    onChange={(e) => setFilters({...filters, maxAssets: e.target.value})}
+                                    placeholder="No limit"
+                                    min="0"
+                                    step="1000000"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end space-x-3 pt-4">
+                            <button
+                                type="button"
+                                onClick={handleReset}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            >
+                                Reset
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isLoading ? 'Searching...' : 'Search'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            );
+        };
+
+        const BankList = ({ banks, selectedBanks, onBankSelect }) => {
+            const isBankSelected = (bankId) => {
+                return selectedBanks.some(bank => bank.id === bankId);
+            };
+
+            return (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="px-6 py-4 border-b border-gray-200">
+                        <h2 className="text-lg font-semibold text-gray-900">
+                            Search Results ({banks.length} banks)
+                        </h2>
+                    </div>
+
+                    <div className="divide-y divide-gray-200">
+                        {banks.map((bank) => {
+                            const isSelected = isBankSelected(bank.id);
+                            
+                            return (
+                                <div
+                                    key={bank.id}
+                                    className={`px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors bank-item ${
+                                        isSelected ? 'selected' : ''
+                                    }`}
+                                    onClick={() => onBankSelect(bank)}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-3">
+                                            <div className="flex-shrink-0">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isSelected}
+                                                    onChange={() => onBankSelect(bank)}
+                                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-sm font-medium text-gray-900 truncate">
+                                                    {bank.bankName}
+                                                </h3>
+                                                <div className="mt-1 flex items-center space-x-4 text-sm text-gray-500">
+                                                    <span>FDIC: {bank.fdicCertificateNumber}</span>
+                                                    <span>RSSD: {bank.rssdId}</span>
+                                                    <span>{bank.city}, {bank.state}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex-shrink-0 ml-4">
+                                            <div className="text-right">
+                                                <div className="text-sm font-medium text-gray-900">
+                                                    {formatCurrency(bank.totalAssets)}
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                    {bank.charterType}
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                    {bank.regulator}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {isSelected && (
+                                        <div className="mt-2 text-xs text-blue-600 font-medium">
+                                            ✓ Selected
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        const SelectedBanks = ({ selectedBanks, onRemoveBank, onClearSelection }) => {
+            const maxAllowed = 30;
+            const totalSelected = selectedBanks.length;
+            const progressPercentage = (totalSelected / maxAllowed) * 100;
+
+            return (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="px-6 py-4 border-b border-gray-200">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-semibold text-gray-900">
+                                Selected Banks
+                            </h2>
+                            <span className="text-sm text-gray-500">
+                                {totalSelected} / {maxAllowed}
+                            </span>
+                        </div>
+                        
+                        <div className="mt-3">
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                    className="bg-blue-600 h-2 rounded-full progress-bar"
+                                    style={{ width: `${progressPercentage}%` }}
+                                ></div>
+                            </div>
+                        </div>
+
+                        {totalSelected > 0 && (
+                            <div className="mt-3">
+                                <button
+                                    onClick={onClearSelection}
+                                    className="w-full px-3 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                                >
+                                    Clear All
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="max-h-96 overflow-y-auto">
+                        {selectedBanks.length === 0 ? (
+                            <div className="px-6 py-8 text-center text-gray-500">
+                                <p>No banks selected</p>
+                                <p className="text-sm mt-1">Search and select banks to get started</p>
+                            </div>
+                        ) : (
+                            <div className="divide-y divide-gray-200">
+                                {selectedBanks.map((bank) => (
+                                    <div key={bank.id} className="px-6 py-4">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-sm font-medium text-gray-900 truncate">
+                                                    {bank.bankName}
+                                                </h3>
+                                                <div className="mt-1 text-xs text-gray-500">
+                                                    <p>FDIC: {bank.fdicCertificateNumber}</p>
+                                                    <p>{bank.city}, {bank.state}</p>
+                                                    <p className="font-medium text-gray-700">
+                                                        {formatCurrency(bank.totalAssets)}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            
+                                            <button
+                                                onClick={() => onRemoveBank(bank.id)}
+                                                className="flex-shrink-0 ml-2 p-1 text-gray-400 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded"
+                                            >
+                                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {selectedBanks.length > 0 && (
+                        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                            <div className="text-sm text-gray-600">
+                                <p>Total Assets: {formatCurrency(selectedBanks.reduce((sum, bank) => sum + bank.totalAssets, 0))}</p>
+                                <p>Average Assets: {formatCurrency(selectedBanks.reduce((sum, bank) => sum + bank.totalAssets, 0) / selectedBanks.length)}</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const BankSelectionDemo = () => {
+            const [searchResults, setSearchResults] = useState(mockBanks);
+            const [selectedBanks, setSelectedBanks] = useState([]);
+            const [isSearching, setIsSearching] = useState(false);
+            const [hasSearched, setHasSearched] = useState(false);
+
+            const handleSearch = (filters) => {
+                setIsSearching(true);
+                
+                // Simulate API delay
+                setTimeout(() => {
+                    let filteredBanks = [...mockBanks];
+
+                    if (filters.search) {
+                        const searchLower = filters.search.toLowerCase();
+                        filteredBanks = filteredBanks.filter(bank =>
+                            bank.bankName.toLowerCase().includes(searchLower) ||
+                            bank.fdicCertificateNumber.includes(searchLower) ||
+                            bank.city.toLowerCase().includes(searchLower) ||
+                            bank.state.toLowerCase().includes(searchLower)
+                        );
+                    }
+
+                    if (filters.state) {
+                        filteredBanks = filteredBanks.filter(bank => bank.state === filters.state);
+                    }
+
+                    if (filters.charterType) {
+                        filteredBanks = filteredBanks.filter(bank => bank.charterType === filters.charterType);
+                    }
+
+                    if (filters.regulator) {
+                        filteredBanks = filteredBanks.filter(bank => bank.regulator === filters.regulator);
+                    }
+
+                    if (filters.minAssets) {
+                        filteredBanks = filteredBanks.filter(bank => bank.totalAssets >= parseFloat(filters.minAssets));
+                    }
+
+                    if (filters.maxAssets) {
+                        filteredBanks = filteredBanks.filter(bank => bank.totalAssets <= parseFloat(filters.maxAssets));
+                    }
+
+                    setSearchResults(filteredBanks);
+                    setIsSearching(false);
+                    setHasSearched(true);
+                }, 500);
+            };
+
+            const handleBankSelect = (bank) => {
+                const isSelected = selectedBanks.some(b => b.id === bank.id);
+                
+                if (isSelected) {
+                    setSelectedBanks(prev => prev.filter(b => b.id !== bank.id));
+                } else {
+                    if (selectedBanks.length >= 30) {
+                        alert('Cannot select more than 30 banks');
+                        return;
+                    }
+                    setSelectedBanks(prev => [...prev, bank]);
+                }
+            };
+
+            const handleRemoveBank = (bankId) => {
+                setSelectedBanks(prev => prev.filter(b => b.id !== bankId));
+            };
+
+            const handleClearSelection = () => {
+                if (window.confirm('Are you sure you want to clear all selected banks?')) {
+                    setSelectedBanks([]);
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-50 py-8">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="mb-8">
+                            <h1 className="text-3xl font-bold text-gray-900">Bank Selection Demo</h1>
+                            <p className="mt-2 text-gray-600">
+                                Search and select up to 30 banks for UBPR data analysis and simulation
+                            </p>
+                            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                                <p className="text-sm text-blue-800">
+                                    <strong>Demo Mode:</strong> This is a demonstration with mock data. The search and selection functionality is fully interactive.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-2 space-y-6">
+                                <BankSearchForm onSearch={handleSearch} isLoading={isSearching} />
+                                <BankList 
+                                    banks={searchResults} 
+                                    selectedBanks={selectedBanks}
+                                    onBankSelect={handleBankSelect}
+                                />
+                            </div>
+
+                            <div className="lg:col-span-1">
+                                <SelectedBanks
+                                    selectedBanks={selectedBanks}
+                                    onRemoveBank={handleRemoveBank}
+                                    onClearSelection={handleClearSelection}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<BankSelectionDemo />, document.getElementById('root'));
+    </script>
+</body>
+</html> 
