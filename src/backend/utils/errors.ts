@@ -68,4 +68,4 @@ export class ExternalServiceError extends Error {
     this.statusCode = 502;
     this.isOperational = true;
   }
-} 
+}
