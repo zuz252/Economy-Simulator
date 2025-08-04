@@ -1,0 +1,202 @@
+Application: AI Economy Simulation
+Objective: The primary goal of this application is to create a multi-user simulation that demonstrates how monetary and fiscal policy impact the decisions of banks, businesses, and consumers. The simulation is designed to show the interconnectedness of these economic players and how their individual actions affect the broader economic system. A particular focus is placed on the banking sector, examining how external factors influence banks and how their decisions, in turn, impact the economy.
+Key Players & Roles:
+The Federal Reserve (The Fed): Acts as a single entity, but its decisions can be made by up to 12 players representing the voting members of the FOMC.
+Government: Can be represented by both a domestic and a foreign government. A single player or a group of players can act as the government.
+Banks: The simulation can support an unlimited number of banks, with players making decisions for each.
+Businesses: The simulation can include many businesses, with decision-making split among players.
+Consumers: The model will have a set number of consumers, with players controlling their decisions.
+Trade Partners: Other countries can participate, making their own economic decisions.
+Player Levers & Actions:
+The Fed:
+Set the Fed funds rate through open market operations to influence interest rates and the money supply.
+Banks:
+Determine deposit and loan rates.
+Manage deposit beta.
+Define loan portfolio mix and loan policy.
+Consumers:
+Make choices about consumption, savings, and taking out loans.
+Businesses:
+Make employment and investment decisions.
+Government:
+Set fiscal policy, including stimulus, tax revenue, and expenditures.
+Establish trade policies and tariffs.
+Metrics for Success:
+Countries: Measured by Gross Domestic Product (GDP).
+The Fed: Judged on its dual mandate of managing inflation and unemployment.
+Consumers: Aim to maximize their savings and overall utility.
+Businesses: Focus on maximizing shareholder value, measured by net income or earnings per share.
+Government: Also concerned with unemployment.
+AI & Automation:
+Autonomous Agents: AI agents can play any role if there are not enough human players. The simulation will include AI agents for a macroeconomist, lender, consumer, business CEO, Fed chairman, and a historian.
+Scenario Generation: An AI agent will be responsible for creating macroeconomic scenarios that react to the simulation's progression.
+Narrative-Based Adjustments: An AI agent will be able to take a written narrative and adjust the simulation's parameters accordingly.
+Post-Round Analysis: The AI will provide an explanation of each round from every player's perspective, including the pros and cons of their decisions.
+Post-Simulation Debrief: An AI committee will engage in a post-simulation conversation with players to analyze how the game was played.
+User Interface (UI) & Features:
+Player-Specific UIs: Each player type (Fed, country, consumer, business) will have a unique user interface.
+Simulation Dashboard: A graphical dashboard will display key statistics across all economic sectors and summarize the decisions made in each round. This will also be available as presentation notes.
+Round Replay: Players will have the ability to replay any round.
+Configurable Settings: The simulation will allow for setting the number of rounds, and the starting positions for banks, businesses, and consumers can be configured. Historical starting positions can also be simulated.
+Player Tips: Tips will be provided to players in each round as needed.
+Learning Objectives:
+The simulation aims to teach players about:
+The impact of interest rate changes on the demand for loans.
+The effect of consumer confidence on spending versus saving.
+The balance between earnings and risk for banks.
+The importance of capital and liquidity for banks.
+The connection between the Fed, money supply, bank behavior, and consumer and business sentiment.
+Project Plan & Technology:
+Development Plan: The project will start with wireframes, move to a clickable prototype, and then to the final build.
+Proposed Tech Stack:
+Backend: Python
+Frontend: Tailwind CSS
+Minimum Viable Product (MVP): The MVP will include only the Fed, banks, and consumers, with only the bank role played by a human.
+# prd.yaml
+productName: "AI-Powered Bank Analysis and Simulation"
+version: 0.2.0-dfp
+
+# Updated to reflect the formal proposal's language
+problemStatement: "Bank leadership and students of finance need a better way to understand their bank's condition, performance, and risk profile. Traditional analysis is static and time-consuming. There is a need for a dynamic tool that can not only analyze historical data (like UBPR) but also simulate the future impact of strategic decisions under various macroeconomic conditions."
+
+# Expanded goals incorporating objectives from both documents
+goals:
+  - "Build on the analytical foundation of UBPR and internal reporting to analyze a bank's asset composition, quality, and profitability."
+  - "Create an interactive simulation to model how balance sheet and income statement changes affect key risk and performance indicators."
+  - "Utilize Generative AI to provide both quantitative analysis (charts) and qualitative insights (narrative, chat-based inquiry)."
+  - "Demonstrate the connectivity between external monetary policy and internal bank decision-making."
+nonGoals:
+  - "Replacing the need for senior management engagement, but rather enhancing it."
+  - "Detailed regulatory modeling outside of high-level safety, soundness, and capital considerations."
+
+successMetrics:
+  - metricId: MET-01
+    player: "Bank"
+    description: "Balance of earnings and risk."
+  - metricId: MET-02
+    player: "The Fed"
+    description: "Balancing the dual mandate of inflation and unemployment."
+  - metricId: MET-03
+    player: "Consumer"
+    description: "Maximization of savings and overall utility."
+
+personas:
+  - &bank_player_persona
+    id: P-01
+    name: "The Bank Analyst / Student"
+    role: "Human Player"
+    description: "A user (bank employee or DFP student) who needs to analyze a bank's condition and simulate the impact of strategic decisions."
+  - &fed_ai_persona
+    id: P-02
+    name: "The Fed AI"
+    role: "Autonomous AI Agent"
+    description: "An AI agent that controls the Federal Reserve's levers, primarily the Fed funds rate, based on macroeconomic conditions."
+  - &consumer_ai_persona
+    id: P-03
+    name: "The Consumer AI"
+    role: "Autonomous AI Agent"
+    description: "An AI agent representing the aggregate behavior of consumers, making decisions about spending and saving."
+
+userJourneys: []
+
+features:
+  - featureId: FEAT-001
+    name: "Core Banking Decision Cycle"
+    description: "Allows the human bank player to make decisions and see their impact on the economy in a single round."
+    epic: "MVP Banking Simulation"
+    userStories:
+      - storyId: US-001
+        persona: *bank_player_persona
+        story: "As the Bank Analyst, I want to set my deposit and loan rates, so that I can attract deposits and generate revenue while managing risk."
+        acceptanceCriteria: "features/mvp_bank_decisions.feature"
+        wireframe: "assets/wireframe_bank_dashboard.png"
+
+  - featureId: FEAT-002
+    name: "AI-Powered Initial Analysis"
+    description: "Ingests bank data and uses AI to generate an initial performance and risk analysis."
+    epic: "Bank Condition Analysis"
+    userStories:
+      - storyId: US-004
+        persona: *bank_player_persona
+        story: "As the Bank Analyst, I want to upload UBPR and internal financial data, so the application can extract key data for analysis."
+      - storyId: US-005
+        persona: *bank_player_persona
+        story: "As the Bank Analyst, I want the application to generate relevant charts and narrative to support my analysis of asset composition, asset quality, and profitability."
+
+  - featureId: FEAT-003
+    name: "Change Simulation and Scenario Modeling"
+    description: "Allows a user to simulate the impact of their strategic decisions under selected economic conditions."
+    epic: "Forward-Looking Simulation"
+    userStories:
+      - storyId: US-006
+        persona: *bank_player_persona
+        story: "As the Bank Analyst, I want to use a chat interface to describe a strategic change I'd like to make, so the application can propose the required balance sheet and income statement changes."
+        acceptanceCriteria: "features/change_simulation.feature"
+        wireframe: "assets/wireframe_chat_interface.png"
+      - storyId: US-007
+        persona: *bank_player_persona
+        story: "As the Bank Analyst, I want to select an economic scenario from a list of 2-3 options, so I can superimpose economic conditions onto my proposed changes."
+        acceptanceCriteria: "features/change_simulation.feature"
+      - storyId: US-008
+        persona: *bank_player_persona
+        story: "As the Bank Analyst, I want the model to produce key indicators around Rate Risk, Liquidity, Capital, Net Income and Margin, so that I can analyze the outcome of the simulation."
+        acceptanceCriteria: "features/change_simulation.feature"
+      - storyId: US-009
+        persona: *bank_player_persona
+        story: "As the Bank Analyst, I want to generate a final report with analysis of my objective, the outcome, and any obstacles."
+
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Macroeconomic Scenario",
+  "description": "Defines the structure for a selectable macroeconomic scenario that impacts the simulation.",
+  "type": "object",
+  "properties": {
+    "scenarioId": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "description": "e.g., 'Rising Interest Rate Environment'"
+    },
+    "description": {
+      "type": "string"
+    },
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "fedFundsRateChange": {
+          "type": "number",
+          "description": "The change in the Fed Funds Rate over the course of the scenario."
+        },
+        "unemploymentRateChange": {
+          "type": "number"
+        },
+        "gdpGrowthRate": {
+          "type": "number"
+        }
+      },
+      "required": ["fedFundsRateChange", "unemploymentRateChange", "gdpGrowthRate"]
+    }
+  },
+  "required": ["scenarioId", "name", "description", "parameters"]
+}
+
+# features/change_simulation.feature
+Feature: Change Simulation and Scenario Modeling
+  As a Bank Analyst, I need to simulate strategic changes under different economic conditions
+  to understand the potential impact on my bank's risk and performance indicators.
+
+  Scenario: Simulate growing the loan portfolio in a rising rate environment
+    Given the user is on the "Simulation" page
+    And has uploaded their bank's financial data
+
+    When the user types into the chat interface: "I want to grow my commercial loan portfolio by 15% over the next 2 years"
+    Then the application should propose changes to the balance sheet and income statement to reflect this strategy
+
+    When the user selects the "Rising Interest Rate Environment" scenario from a list
+    And clicks the "Run Simulation" button
+
+    Then the simulation should produce a report with key indicators
+    And the "Net Income" indicator should reflect the impact of both the portfolio growth and the economic scenario
+    And the report should include a narrative analysis of the objective, outcome, and potential obstacles
+

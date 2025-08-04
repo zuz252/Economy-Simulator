@@ -1,0 +1,698 @@
+feature:
+  name: "UBPR Data Import and Analysis"
+  description: "Select up to 30 banks, retrieve their UBPR data, and store it for analysis"
+  version: "1.0.0"
+  priority: "High"
+  status: "Planning"
+
+requirements:
+  functional:
+    - "Allow users to select up to 30 banks from a searchable list"
+    - "Retrieve UBPR data for selected banks from FDIC database"
+    - "Store UBPR data in a structured format for analysis"
+    - "Support historical data retrieval (up to 5 years)"
+    - "Provide data validation and error handling"
+    - "Data export for external analysis tools is not required; analysis will be performed within the application."
+    - "Support batch processing for multiple banks"
+
+  non_functional:
+    - "Response time: < 30 seconds for data retrieval"
+    - "Data accuracy: 99.9% match with FDIC source"
+    - "Availability: 99.5% uptime during business hours"
+    - "Security: Encrypted data transmission and storage"
+    - "Scalability: Support for concurrent users"
+
+user_stories:
+  - id: "US-001"
+    title: "Bank Selection"
+    description: "As a financial analyst, I want to search and select up to 30 banks so that I can retrieve their UBPR data as a starting point for comparative analysis and as the starting point for these banks in the simulation"
+    acceptance_criteria:
+      - "Search banks by name, FDIC certificate number, or location"
+      - "Display bank information (name, location, assets, FDIC cert #)"
+      - "Allow selection/deselection of banks with visual feedback"
+      - "Enforce maximum limit of 30 banks"
+      - "Show selected banks count and list"
+
+  - id: "US-002"
+    title: "UBPR Data Retrieval"
+    description: "As a financial analyst, I want to retrieve UBPR data for selected banks so that I can access their performance metrics and use them as the starting point for the simulation"
+    acceptance_criteria:
+      - "Retrieve data from FDIC UBPR database using the FFIEC CDR Public Data Distribution Service"
+      - "Support multiple reporting periods (quarterly/annual)"
+      - "Handle data retrieval errors gracefully"
+      - "Show progress indicator during retrieval"
+      - "Validate data completeness and accuracy"
+
+  - id: "US-003"
+    title: "Data Storage and Management"
+    description: "As a system administrator, I want UBPR data to be stored securely and efficiently so that it can be used for analysis"
+    acceptance_criteria:
+      - "Store data in structured database format"
+      - "Ensure data integrity and consistency"
+
+  - id: "US-004"
+    title: "Data Analysis Preparation"
+    description: "As a financial analyst, I want UBPR data to be formatted for analysis so that I can perform financial ratio analysis"
+    acceptance_criteria:
+      - "Calculate key financial ratios (ROA, ROE, efficiency ratio, etc.)"
+      - "Normalize data across different reporting periods"
+      - "Flag data quality issues or missing values"
+      - "Provide ability to query the data for use in the simulation and for in-application analysis"
+
+  - id: "US-005"
+    title: "MCP Server for FFIEC Web Service Integration"
+    description: "As a developer, I want an MCP Server to interact with the FFIEC Public Web Service so that I can easily retrieve UBPR data through standardized protocols"
+    acceptance_criteria:
+      - "Implement MCP Server following Model Context Protocol specifications"
+      - "Provide standardized interface for FFIEC CDR service operations"
+      - "Handle SOAP web service communication and data transformation"
+      - "Support authentication and session management"
+      - "Implement error handling and retry mechanisms"
+      - "Provide logging and monitoring capabilities"
+
+  - id: "US-006"
+    title: "Simulation Data Integration"
+    description: "As a financial analyst, I want UBPR data to integrate seamlessly with the simulation system so that I can use real bank data as starting points"
+    acceptance_criteria:
+      - "Transform UBPR data into simulation-compatible format"
+      - "Map financial metrics to simulation parameters"
+      - "Provide data validation for simulation requirements"
+      - "Support incremental data updates for simulation runs"
+      - "Enable historical data analysis within simulation context"
+
+data_model:
+  bank:
+    - fdic_certificate_number: "string (primary key)"
+    - bank_name: "string"
+    - city: "string"
+    - state: "string"
+    - total_assets: "decimal"
+    - charter_type: "string"
+    - regulator: "string"
+
+  ubpr_data:
+    - id: "uuid (primary key)"
+    - bank_id: "foreign key to bank"
+    - rssd_id: "string (FFIEC RSSD identifier)"
+    - reporting_period: "date"
+    - data_type: "string (quarterly/annual)"
+    - filing_date: "date"
+    - data_source: "string (FFIEC CDR)"
+    - created_at: "timestamp"
+    - updated_at: "timestamp"
+
+  ubpr_balance_sheet:
+    - id: "uuid (primary key)"
+    - ubpr_data_id: "foreign key to ubpr_data"
+    - total_assets: "decimal"
+    - total_equity_capital: "decimal"
+    - total_deposits: "decimal"
+    - total_loans_and_leases: "decimal"
+    - total_securities: "decimal"
+    - cash_and_due_from_depository_institutions: "decimal"
+    - federal_funds_sold_and_securities_purchased: "decimal"
+    - trading_assets: "decimal"
+    - premises_and_fixed_assets: "decimal"
+    - other_real_estate_owned: "decimal"
+    - intangible_assets: "decimal"
+    - other_assets: "decimal"
+    - total_liabilities: "decimal"
+    - total_deposits_insured: "decimal"
+    - total_deposits_uninsured: "decimal"
+    - federal_funds_purchased_and_securities_sold: "decimal"
+    - trading_liabilities: "decimal"
+    - other_borrowed_money: "decimal"
+    - subordinated_debt: "decimal"
+    - other_liabilities: "decimal"
+
+  ubpr_income_statement:
+    - id: "uuid (primary key)"
+    - ubpr_data_id: "foreign key to ubpr_data"
+    - total_interest_income: "decimal"
+    - total_interest_expense: "decimal"
+    - net_interest_income: "decimal"
+    - total_noninterest_income: "decimal"
+    - total_noninterest_expense: "decimal"
+    - provision_for_loan_and_lease_losses: "decimal"
+    - income_taxes: "decimal"
+    - net_income: "decimal"
+    - net_income_attributable_to_bank: "decimal"
+    - net_income_attributable_to_noncontrolling_interest: "decimal"
+    - total_revenue: "decimal"
+    - total_expense: "decimal"
+
+  ubpr_performance_ratios:
+    - id: "uuid (primary key)"
+    - ubpr_data_id: "foreign key to ubpr_data"
+    - return_on_assets: "decimal"
+    - return_on_equity: "decimal"
+    - return_on_tangible_equity: "decimal"
+    - net_interest_margin: "decimal"
+    - efficiency_ratio: "decimal"
+    - overhead_efficiency_ratio: "decimal"
+    - asset_utilization: "decimal"
+    - yield_on_earning_assets: "decimal"
+    - cost_of_funding_earning_assets: "decimal"
+    - net_interest_spread: "decimal"
+    - net_interest_income_to_total_revenue: "decimal"
+    - noninterest_income_to_total_revenue: "decimal"
+    - noninterest_expense_to_total_revenue: "decimal"
+    - net_income_to_total_revenue: "decimal"
+
+  ubpr_capital_adequacy:
+    - id: "uuid (primary key)"
+    - ubpr_data_id: "foreign key to ubpr_data"
+    - tier_1_capital_ratio: "decimal"
+    - total_capital_ratio: "decimal"
+    - tier_1_leverage_ratio: "decimal"
+    - common_equity_tier_1_capital_ratio: "decimal"
+    - tier_1_risk_based_capital: "decimal"
+    - total_risk_based_capital: "decimal"
+    - tier_1_capital: "decimal"
+    - total_capital: "decimal"
+    - risk_weighted_assets: "decimal"
+    - average_total_assets: "decimal"
+    - tier_1_capital_to_average_total_assets: "decimal"
+
+  ubpr_asset_quality:
+    - id: "uuid (primary key)"
+    - ubpr_data_id: "foreign key to ubpr_data"
+    - total_nonperforming_assets: "decimal"
+    - total_nonperforming_loans: "decimal"
+    - total_past_due_loans: "decimal"
+    - total_loans_90_days_or_more_past_due: "decimal"
+    - total_loans_30_89_days_past_due: "decimal"
+    - total_loans_less_than_30_days_past_due: "decimal"
+    - total_loans_and_leases: "decimal"
+    - allowance_for_loan_and_lease_losses: "decimal"
+    - net_charge_offs: "decimal"
+    - gross_charge_offs: "decimal"
+    - recoveries: "decimal"
+    - nonperforming_assets_to_total_assets: "decimal"
+    - nonperforming_loans_to_total_loans: "decimal"
+    - allowance_for_loan_and_lease_losses_to_total_loans: "decimal"
+    - net_charge_offs_to_average_total_loans: "decimal"
+
+  ubpr_liquidity:
+    - id: "uuid (primary key)"
+    - ubpr_data_id: "foreign key to ubpr_data"
+    - total_loans_to_total_deposits: "decimal"
+    - total_loans_to_total_assets: "decimal"
+    - total_deposits_to_total_assets: "decimal"
+    - liquid_assets_to_total_deposits: "decimal"
+    - liquid_assets_to_short_term_liabilities: "decimal"
+    - net_stable_funding_ratio: "decimal"
+    - liquidity_coverage_ratio: "decimal"
+    - brokered_deposits_to_total_deposits: "decimal"
+    - core_deposits_to_total_deposits: "decimal"
+    - volatile_liabilities_to_total_liabilities: "decimal"
+
+  ubpr_sensitivity_to_market_risk:
+    - id: "uuid (primary key)"
+    - ubpr_data_id: "foreign key to ubpr_data"
+    - total_assets_under_management: "decimal"
+    - total_assets_under_management_to_total_assets: "decimal"
+    - total_assets_under_management_to_total_equity: "decimal"
+    - total_assets_under_management_to_total_deposits: "decimal"
+    - total_assets_under_management_to_total_loans: "decimal"
+    - total_assets_under_management_to_total_securities: "decimal"
+    - total_assets_under_management_to_total_interest_earning_assets: "decimal"
+    - total_assets_under_management_to_total_noninterest_earning_assets: "decimal"
+    - total_assets_under_management_to_total_interest_bearing_liabilities: "decimal"
+    - total_assets_under_management_to_total_noninterest_bearing_liabilities: "decimal"
+
+  ubpr_loan_portfolio:
+    - id: "uuid (primary key)"
+    - ubpr_data_id: "foreign key to ubpr_data"
+    - commercial_and_industrial_loans: "decimal"
+    - real_estate_loans: "decimal"
+    - residential_real_estate_loans: "decimal"
+    - commercial_real_estate_loans: "decimal"
+    - construction_and_land_development_loans: "decimal"
+    - consumer_loans: "decimal"
+    - credit_card_loans: "decimal"
+    - agricultural_loans: "decimal"
+    - other_loans: "decimal"
+    - total_loans_and_leases: "decimal"
+    - commercial_and_industrial_loans_to_total_loans: "decimal"
+    - real_estate_loans_to_total_loans: "decimal"
+    - consumer_loans_to_total_loans: "decimal"
+    - agricultural_loans_to_total_loans: "decimal"
+
+  ubpr_deposit_structure:
+    - id: "uuid (primary key)"
+    - ubpr_data_id: "foreign key to ubpr_data"
+    - demand_deposits: "decimal"
+    - savings_deposits: "decimal"
+    - time_deposits: "decimal"
+    - brokered_deposits: "decimal"
+    - foreign_deposits: "decimal"
+    - total_deposits: "decimal"
+    - demand_deposits_to_total_deposits: "decimal"
+    - savings_deposits_to_total_deposits: "decimal"
+    - time_deposits_to_total_deposits: "decimal"
+    - brokered_deposits_to_total_deposits: "decimal"
+    - foreign_deposits_to_total_deposits: "decimal"
+
+  ubpr_securities_portfolio:
+    - id: "uuid (primary key)"
+    - ubpr_data_id: "foreign key to ubpr_data"
+    - us_treasury_securities: "decimal"
+    - us_government_agency_securities: "decimal"
+    - mortgage_backed_securities: "decimal"
+    - municipal_securities: "decimal"
+    - corporate_bonds: "decimal"
+    - equity_securities: "decimal"
+    - other_securities: "decimal"
+    - total_securities: "decimal"
+    - held_to_maturity_securities: "decimal"
+    - available_for_sale_securities: "decimal"
+    - trading_securities: "decimal"
+    - us_treasury_securities_to_total_securities: "decimal"
+    - us_government_agency_securities_to_total_securities: "decimal"
+    - mortgage_backed_securities_to_total_securities: "decimal"
+    - municipal_securities_to_total_securities: "decimal"
+
+  analysis_session:
+    - id: "uuid (primary key)"
+    - user_id: "foreign key to user"
+    - session_name: "string"
+    - selected_banks: "array of bank IDs"
+    - analysis_period: "date range"
+    - created_at: "timestamp"
+    - status: "string (active/completed/archived)"
+
+  mcp_server_config:
+    - id: "uuid (primary key)"
+    - server_name: "string"
+    - description: "string"
+    - ffiec_service_url: "string"
+    - authentication_credentials: "encrypted json"
+    - connection_timeout: "integer (seconds)"
+    - retry_attempts: "integer"
+    - rate_limiting: "json"
+    - created_at: "timestamp"
+    - updated_at: "timestamp"
+
+  simulation_mapping:
+    - id: "uuid (primary key)"
+    - bank_id: "foreign key to bank"
+    - ubpr_metric: "string"
+    - simulation_parameter: "string"
+    - mapping_rule: "json"
+    - transformation_function: "string"
+    - validation_rules: "json"
+    - created_at: "timestamp"
+    - updated_at: "timestamp"
+
+  mcp_session:
+    - id: "uuid (primary key)"
+    - session_id: "string"
+    - user_id: "foreign key to user"
+    - ffiec_credentials: "encrypted json"
+    - session_start: "timestamp"
+    - session_end: "timestamp"
+    - status: "string (active/expired/terminated)"
+    - request_count: "integer"
+    - error_count: "integer"
+
+api_endpoints:
+  banks:
+    - method: "GET"
+      path: "/api/banks"
+      description: "Search and retrieve bank information"
+      parameters:
+        - name: "search"
+          type: "string"
+          description: "Search term for bank name or FDIC cert number"
+        - name: "state"
+          type: "string"
+          description: "Filter by state"
+        - name: "limit"
+          type: "integer"
+          description: "Maximum number of results"
+
+  ubpr_data:
+    - method: "POST"
+      path: "/api/ubpr/retrieve"
+      description: "Retrieve UBPR data for selected banks"
+      parameters:
+        - name: "bank_ids"
+          type: "array"
+          description: "Array of FDIC certificate numbers"
+        - name: "start_date"
+          type: "date"
+          description: "Start date for data retrieval"
+        - name: "end_date"
+          type: "date"
+          description: "End date for data retrieval"
+
+    - method: "GET"
+      path: "/api/ubpr/data"
+      description: "Retrieve stored UBPR data"
+      parameters:
+        - name: "bank_ids"
+          type: "array"
+          description: "Array of bank IDs"
+        - name: "start_date"
+          type: "date"
+          description: "Start date filter"
+        - name: "end_date"
+          type: "date"
+          description: "End date filter"
+
+    - method: "GET"
+      path: "/api/ubpr/balance-sheet/{ubpr_data_id}"
+      description: "Retrieve balance sheet data for specific UBPR record"
+
+    - method: "GET"
+      path: "/api/ubpr/income-statement/{ubpr_data_id}"
+      description: "Retrieve income statement data for specific UBPR record"
+
+    - method: "GET"
+      path: "/api/ubpr/performance-ratios/{ubpr_data_id}"
+      description: "Retrieve performance ratios for specific UBPR record"
+
+    - method: "GET"
+      path: "/api/ubpr/capital-adequacy/{ubpr_data_id}"
+      description: "Retrieve capital adequacy data for specific UBPR record"
+
+    - method: "GET"
+      path: "/api/ubpr/asset-quality/{ubpr_data_id}"
+      description: "Retrieve asset quality data for specific UBPR record"
+
+    - method: "GET"
+      path: "/api/ubpr/liquidity/{ubpr_data_id}"
+      description: "Retrieve liquidity data for specific UBPR record"
+
+    - method: "GET"
+      path: "/api/ubpr/loan-portfolio/{ubpr_data_id}"
+      description: "Retrieve loan portfolio data for specific UBPR record"
+
+    - method: "GET"
+      path: "/api/ubpr/deposit-structure/{ubpr_data_id}"
+      description: "Retrieve deposit structure data for specific UBPR record"
+
+    - method: "GET"
+      path: "/api/ubpr/securities-portfolio/{ubpr_data_id}"
+      description: "Retrieve securities portfolio data for specific UBPR record"
+
+    - method: "GET"
+      path: "/api/ubpr/comprehensive/{ubpr_data_id}"
+      description: "Retrieve all UBPR data components for specific record"
+
+  analysis:
+    - method: "POST"
+      path: "/api/analysis/session"
+      description: "Create new analysis session"
+    - method: "GET"
+      path: "/api/analysis/session/{id}"
+      description: "Retrieve analysis session"
+    - method: "POST"
+      path: "/api/analysis/export"
+      description: "Export analysis data"
+
+  mcp:
+    - method: "POST"
+      path: "/api/mcp/initialize"
+      description: "Initialize MCP Server connection"
+      parameters:
+        - name: "ffiec_credentials"
+          type: "object"
+          description: "FFIEC service authentication credentials"
+        - name: "server_config"
+          type: "object"
+          description: "MCP Server configuration parameters"
+
+    - method: "GET"
+      path: "/api/mcp/status"
+      description: "Get MCP Server status and connection health"
+
+    - method: "POST"
+      path: "/api/mcp/execute"
+      description: "Execute MCP operation on FFIEC service"
+      parameters:
+        - name: "operation"
+          type: "string"
+          description: "MCP operation to execute"
+        - name: "parameters"
+          type: "object"
+          description: "Operation-specific parameters"
+
+    - method: "GET"
+      path: "/api/mcp/sessions"
+      description: "List active MCP sessions"
+
+  ffiec_integration:
+    - method: "POST"
+      path: "/api/ffiec/test-access"
+      description: "Test FFIEC CDR service access"
+    - method: "GET"
+      path: "/api/ffiec/reporting-periods"
+      description: "Get available UBPR reporting periods"
+    - method: "POST"
+      path: "/api/ffiec/retrieve-ubpr"
+      description: "Retrieve UBPR data via FFIEC service"
+      parameters:
+        - name: "rssd_id"
+          type: "string"
+          description: "Bank RSSD identifier"
+        - name: "reporting_period"
+          type: "string"
+          description: "Reporting period (YYYY-MM-DD)"
+
+technical_architecture:
+  frontend:
+    - framework: "React/Vue.js"
+    - components:
+        - "BankSearchComponent"
+        - "BankSelectionComponent"
+        - "DataRetrievalComponent"
+        - "AnalysisDashboardComponent"
+        - "DataExportComponent"
+        - "MCPServerDashboardComponent"
+        - "FFIECServiceMonitorComponent"
+        - "SimulationDataMapperComponent"
+
+  backend:
+    - framework: "Node.js/Python"
+    - services:
+        - "BankService: Bank search and selection"
+        - "FFIECIntegrationService: SOAP web service integration"
+        - "DataStorageService: Database operations"
+        - "AnalysisService: Financial calculations"
+        - "ExportService: Data export functionality"
+        - "MCPServerService: Model Context Protocol server implementation"
+        - "FFIECIntegrationService: SOAP web service integration"
+        - "UBPRDataService: Comprehensive UBPR data management"
+        - "SimulationMappingService: Data transformation for simulation"
+
+  database:
+    - type: "PostgreSQL"
+    - tables:
+        - "banks"
+        - "ubpr_data"
+        - "ubpr_balance_sheet"
+        - "ubpr_income_statement"
+        - "ubpr_performance_ratios"
+        - "ubpr_capital_adequacy"
+        - "ubpr_asset_quality"
+        - "ubpr_liquidity"
+        - "ubpr_sensitivity_to_market_risk"
+        - "ubpr_loan_portfolio"
+        - "ubpr_deposit_structure"
+        - "ubpr_securities_portfolio"
+        - "analysis_sessions"
+        - "mcp_server_config"
+        - "simulation_mapping"
+        - "mcp_session"
+        - "users"
+        - "audit_logs"
+        - "ffiec_service_logs"
+
+  external_integrations:
+    - name: "FFIEC CDR Public Data Distribution Service"
+      description: "Source for UBPR data via SOAP web services"
+      url: "https://cdr.ffiec.gov/public/pws/webservices/retrievalservice.asmx"
+      authentication: "User account access"
+      operations:
+        - "RetrieveUBPRReportingPeriods: Get available reporting periods"
+        - "RetrieveUBPRXBRLFacsimile: Retrieve UBPR data in XBRL format"
+        - "RetrievePanelOfReporters: Get financial institutions for reporting period"
+        - "RetrieveFilersSinceDate: Get recent filers"
+        - "TestUserAccess: Validate user credentials"
+      rate_limits: "Based on FFIEC service limits"
+
+security_requirements:
+  - "Encrypt data in transit (TLS 1.3)"
+  - "Encrypt data at rest (AES-256)"
+  - "Implement role-based access control"
+  - "Audit all data access and modifications"
+  - "Secure API authentication and authorization"
+  - "Data retention policies compliance"
+
+testing_strategy:
+  unit_tests:
+    - "Bank selection logic"
+    - "UBPR data parsing"
+    - "Financial ratio calculations"
+    - "Data validation rules"
+    - "MCP Server implementation"
+    - "FFIEC SOAP service integration"
+    - "Comprehensive UBPR data parsing and storage"
+    - "Data transformation and mapping"
+
+  integration_tests:
+    - "FFIEC CDR service integration"
+    - "Database operations"
+    - "Data export functionality"
+    - "MCP Server integration"
+    - "UBPR data component integration"
+    - "Simulation data mapping"
+
+  end_to_end_tests:
+    - "Complete bank selection workflow"
+    - "Data retrieval and storage process"
+    - "Analysis session creation and management"
+    - "MCP Server workflow"
+    - "Simulation data integration pipeline"
+
+deployment:
+  environment: "Production"
+  infrastructure: "Cloud-based (AWS/Azure/GCP)"
+  monitoring: "Application performance monitoring"
+  logging: "Structured logging with error tracking"
+  backup: "Daily automated backups"
+
+success_metrics:
+  - "User adoption rate: > 80% of target users"
+  - "Data retrieval success rate: > 95%"
+  - "Average response time: < 30 seconds"
+  - "Data accuracy: > 99.9%"
+  - "User satisfaction score: > 4.0/5.0"
+  - "MCP Server reliability: > 99% successful operations"
+  - "FFIEC service integration efficiency: < 5 second response time"
+  - "Data transformation accuracy: > 99.9% mapping success"
+  - "System availability: > 99.5% uptime"
+
+risks_and_mitigation:
+  - risk: "FFIEC service rate limiting and availability"
+    mitigation: "Implement intelligent retry mechanisms and service health monitoring"
+  - risk: "Data quality issues"
+    mitigation: "Implement data validation and quality checks"
+  - risk: "Performance degradation with large datasets"
+    mitigation: "Implement pagination and data archiving"
+  - risk: "Security vulnerabilities"
+    mitigation: "Regular security audits and penetration testing"
+  - risk: "MCP Server implementation complexity"
+    mitigation: "Comprehensive testing and documentation"
+  - risk: "SOAP service integration complexity"
+    mitigation: "Robust error handling and service health monitoring"
+  - risk: "Data transformation accuracy"
+    mitigation: "Automated validation and mapping verification"
+
+dependencies:
+  - "FFIEC CDR Public Data Distribution Service access"
+  - "Database infrastructure"
+  - "Authentication system"
+  - "File storage system"
+  - "Monitoring and logging tools"
+  - "MCP Server framework and libraries"
+  - "SOAP client libraries"
+  - "Data transformation libraries"
+  - "Protocol buffer libraries"
+
+timeline:
+  phase_1: "Bank selection and search (2 weeks)"
+  phase_2: "FFIEC CDR service integration (3 weeks)"
+  phase_3: "Data storage and management (2 weeks)"
+  phase_4: "MCP Server implementation (3 weeks)"
+  phase_5: "Simulation data mapping (2 weeks)"
+  phase_6: "Analysis preparation and integration (2 weeks)"
+  phase_7: "Testing and deployment (2 weeks)"
+  total_duration: "14 weeks"
+
+mcp_server_implementation:
+  overview:
+    description: "Model Context Protocol Server for standardized interaction with FFIEC CDR Public Data Distribution Service"
+    objective: "Provide a standardized, reliable interface for UBPR data retrieval and integration with simulation systems"
+    
+  mcp_architecture:
+    server_implementation:
+      - protocol: "Model Context Protocol (MCP)"
+      - transport: "HTTP/WebSocket"
+      - authentication: "FFIEC user credentials"
+      - session_management: "Stateful connections with timeout handling"
+      
+    core_operations:
+      - "initialize: Establish connection and authenticate with FFIEC service"
+      - "list_resources: Discover available UBPR data resources"
+      - "read_resource: Retrieve specific UBPR data sets"
+      - "search: Query UBPR data with filters"
+      - "tools: Execute FFIEC service operations"
+      
+    ffiec_service_mapping:
+      - "RetrieveUBPRReportingPeriods → list_resources"
+      - "RetrieveUBPRXBRLFacsimile → read_resource (comprehensive UBPR data)"
+      - "RetrievePanelOfReporters → search"
+      - "TestUserAccess → initialize"
+      
+    ubpr_data_components:
+      - "Balance Sheet: Assets, liabilities, and equity"
+      - "Income Statement: Revenue, expenses, and net income"
+      - "Performance Ratios: ROA, ROE, efficiency ratios"
+      - "Capital Adequacy: Tier 1, total capital ratios"
+      - "Asset Quality: Nonperforming assets, charge-offs"
+      - "Liquidity: Funding ratios, deposit structure"
+      - "Sensitivity to Market Risk: Asset management metrics"
+      - "Loan Portfolio: Loan type breakdowns"
+      - "Deposit Structure: Deposit type analysis"
+      - "Securities Portfolio: Investment security details"
+      
+  data_transformation:
+    ubpr_to_simulation:
+      - "Comprehensive financial ratios mapping"
+      - "Detailed asset and liability categorization"
+      - "Performance metrics normalization"
+      - "Historical data alignment"
+      - "Capital adequacy metrics mapping"
+      - "Asset quality indicators mapping"
+      - "Liquidity ratios mapping"
+      - "Loan portfolio composition mapping"
+      - "Deposit structure analysis mapping"
+      - "Securities portfolio allocation mapping"
+      
+    validation_rules:
+      - "Comprehensive data completeness checks"
+      - "Range validation for all financial metrics"
+      - "Consistency verification across reporting periods"
+      - "Simulation parameter compatibility validation"
+      - "Cross-component data consistency validation"
+      - "Regulatory compliance validation"
+      - "Data quality scoring and flagging"
+      
+  integration_capabilities:
+    simulation_system:
+      - "Real-time data streaming"
+      - "Batch data synchronization"
+      - "Incremental updates"
+      - "Historical data access"
+      
+    error_handling:
+      - "Connection retry mechanisms"
+      - "Data validation failures"
+      - "Service unavailability"
+      - "Authentication failures"
+      
+  monitoring_and_logging:
+    performance_metrics:
+      - "Request/response times"
+      - "Success/failure rates"
+      - "Data transformation accuracy"
+      - "Service availability"
+      
+    operational_insights:
+      - "Usage patterns"
+      - "Error trends"
+      - "Performance bottlenecks"
+      - "Capacity planning"
