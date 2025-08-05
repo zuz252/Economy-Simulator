@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: Economy-Simulator
+    name: economy-simulator-backend
     env: node
     buildCommand: npm install && npm run build
     startCommand: npm start
@@ -16,4 +16,4 @@ services:
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
       - key: FRONTEND_URL
-        sync: false 
+        value: https://economy-simulator-frontend.onrender.com 
