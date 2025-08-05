@@ -44,7 +44,7 @@ export const bankService = {
       if (criteria.offset) params.append('offset', criteria.offset.toString());
 
       const response = await api.get(`/banks/search?${params.toString()}`);
-      return response.data.data;
+      return response.data;
     } catch (error) {
       console.error('Error searching banks:', error);
       throw new Error('Failed to search banks');
@@ -57,7 +57,7 @@ export const bankService = {
   async getBankById(id: string): Promise<Bank> {
     try {
       const response = await api.get(`/banks/${id}`);
-      return response.data.data;
+      return response.data;
     } catch (error) {
       console.error('Error getting bank:', error);
       throw new Error('Failed to get bank');
@@ -68,14 +68,12 @@ export const bankService = {
    * Get current bank selection for user
    */
   async getBankSelection(): Promise<{
-    selection: any;
     selectedBanks: Bank[];
-    totalSelected: number;
-    maxAllowed: number;
+    count: number;
   }> {
     try {
       const response = await api.get('/banks/selection');
-      return response.data.data;
+      return response.data;
     } catch (error) {
       console.error('Error getting bank selection:', error);
       throw new Error('Failed to get bank selection');

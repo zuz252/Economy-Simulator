@@ -27,10 +27,11 @@ export interface BankSearchCriteria {
 
 export interface BankSearchResult {
   banks: Bank[];
-  total: number;
-  limit: number;
-  offset: number;
-  hasMore: boolean;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+  };
 }
 
 export interface BankSelection {

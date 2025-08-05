@@ -57,12 +57,8 @@ const BankSelection: React.FC = () => {
     bankService.addBankToSelection,
     {
       onSuccess: (data) => {
-        if (data.success) {
-          toast.success(data.message || 'Bank added to selection');
-          queryClient.invalidateQueries(['bankSelection']);
-        } else {
-          toast.error(data.message || 'Failed to add bank');
-        }
+        toast.success(data.message || 'Bank added to selection');
+        queryClient.invalidateQueries(['bankSelection']);
       },
       onError: (error) => {
         toast.error('Failed to add bank to selection');
@@ -76,12 +72,8 @@ const BankSelection: React.FC = () => {
     bankService.removeBankFromSelection,
     {
       onSuccess: (data) => {
-        if (data.success) {
-          toast.success(data.message || 'Bank removed from selection');
-          queryClient.invalidateQueries(['bankSelection']);
-        } else {
-          toast.error(data.message || 'Failed to remove bank');
-        }
+        toast.success(data.message || 'Bank removed from selection');
+        queryClient.invalidateQueries(['bankSelection']);
       },
       onError: (error) => {
         toast.error('Failed to remove bank from selection');
@@ -95,12 +87,8 @@ const BankSelection: React.FC = () => {
     bankService.clearBankSelection,
     {
       onSuccess: (data) => {
-        if (data.success) {
-          toast.success('Bank selection cleared');
-          queryClient.invalidateQueries(['bankSelection']);
-        } else {
-          toast.error(data.message || 'Failed to clear selection');
-        }
+        toast.success('Bank selection cleared');
+        queryClient.invalidateQueries(['bankSelection']);
       },
       onError: (error) => {
         toast.error('Failed to clear bank selection');
@@ -135,8 +123,8 @@ const BankSelection: React.FC = () => {
     if (isSelected) {
       removeBankMutation.mutate(bank.id);
     } else {
-      if (selectionData && selectionData.totalSelected >= selectionData.maxAllowed) {
-        toast.error(`Cannot select more than ${selectionData.maxAllowed} banks`);
+      if (selectionData && selectionData.count >= 30) {
+        toast.error('Cannot select more than 30 banks');
         return;
       }
       addBankMutation.mutate(bank.id);
@@ -145,7 +133,7 @@ const BankSelection: React.FC = () => {
 
   // Handle load more banks
   const handleLoadMore = () => {
-    if (searchResult?.hasMore) {
+    if (searchResult?.pagination && searchResult.pagination.page * searchResult.pagination.limit < searchResult.pagination.total) {
       setSearchCriteria(prev => ({
         ...prev,
         offset: (prev.offset || 0) + (prev.limit || 20),
@@ -186,7 +174,7 @@ const BankSelection: React.FC = () => {
               selectedBanks={selectionData?.selectedBanks || []}
               isLoading={isSearching}
               error={searchError}
-              hasMore={searchResult?.hasMore || false}
+              hasMore={searchResult?.pagination ? searchResult.pagination.page * searchResult.pagination.limit < searchResult.pagination.total : false}
               onBankSelect={handleBankSelect}
               onLoadMore={handleLoadMore}
             />
@@ -196,8 +184,8 @@ const BankSelection: React.FC = () => {
           <div className="lg:col-span-1">
             <SelectedBanks
               selectedBanks={selectionData?.selectedBanks || []}
-              totalSelected={selectionData?.totalSelected || 0}
-              maxAllowed={selectionData?.maxAllowed || 30}
+              totalSelected={selectionData?.count || 0}
+              maxAllowed={30}
               isLoading={isSelectionLoading}
               error={selectionError}
               onRemoveBank={(bankId) => removeBankMutation.mutate(bankId)}

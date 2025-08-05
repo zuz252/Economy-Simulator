@@ -11,10 +11,20 @@ dotenv.config();
 const app = express();
 const PORT = process.env['PORT'] || 3001;
 
-// Initialize Supabase client
-const supabaseUrl = process.env['SUPABASE_URL']!;
-const supabaseServiceKey = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// Initialize Supabase client (optional for demo)
+let supabase: any = null;
+if (process.env['SUPABASE_URL'] && process.env['SUPABASE_SERVICE_ROLE_KEY']) {
+  try {
+    const supabaseUrl = process.env['SUPABASE_URL'];
+    const supabaseServiceKey = process.env['SUPABASE_SERVICE_ROLE_KEY'];
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
+    console.log('✅ Supabase client initialized');
+  } catch (error) {
+    console.log('❌ Failed to initialize Supabase client:', error);
+  }
+} else {
+  console.log('⚠️  Supabase credentials not found - running in demo mode');
+}
 
 // Middleware
 app.use(helmet());
@@ -27,22 +37,66 @@ app.use(express.json());
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
-  res.json({ 
-    status: 'healthy', 
+  res.json({
+    status: 'healthy',
     timestamp: new Date().toISOString(),
-    environment: process.env['NODE_ENV'] || 'development'
+    environment: process.env['NODE_ENV'] || 'development',
+    supabase: supabase ? 'connected' : 'demo mode'
   });
 });
 
-// Bank routes
+// Bank routes (demo mode)
 app.get('/api/banks/search', async (req, res) => {
   try {
+    if (!supabase) {
+      // Return demo data with consistent format
+      return res.json({
+        banks: [
+          { 
+            id: '1', 
+            rssdId: '1234567',
+            fdicCertificateNumber: '12345',
+            bankName: 'Demo Bank 1', 
+            city: 'Los Angeles',
+            state: 'CA', 
+            totalAssets: 1000000000,
+            charterType: 'Commercial Bank',
+            regulator: 'OCC',
+            isActive: true,
+            lastFilingDate: new Date('2023-12-31'),
+            createdAt: new Date('2023-01-01'),
+            updatedAt: new Date('2023-12-31')
+          },
+          { 
+            id: '2', 
+            rssdId: '2345678',
+            fdicCertificateNumber: '23456',
+            bankName: 'Demo Bank 2', 
+            city: 'New York',
+            state: 'NY', 
+            totalAssets: 2000000000,
+            charterType: 'Commercial Bank',
+            regulator: 'OCC',
+            isActive: true,
+            lastFilingDate: new Date('2023-12-31'),
+            createdAt: new Date('2023-01-01'),
+            updatedAt: new Date('2023-12-31')
+          }
+        ],
+        pagination: {
+          page: 1,
+          limit: 20,
+          total: 2
+        }
+      });
+    }
+
     const { search, state, charter_type, regulator, min_assets, max_assets, page = 1, limit = 20 } = req.query;
-    
+
     let query = supabase
       .from('banks')
       .select('*');
-    
+
     // Apply filters
     if (search) {
       query = query.ilike('name', `%${search}%`);
@@ -62,17 +116,17 @@ app.get('/api/banks/search', async (req, res) => {
     if (max_assets) {
       query = query.lte('assets', parseFloat(max_assets as string));
     }
-    
+
     // Pagination
     const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
     query = query.range(offset, offset + parseInt(limit as string) - 1);
-    
+
     const { data, error, count } = await query;
-    
+
     if (error) {
       return res.status(500).json({ error: error.message });
     }
-    
+
     return res.json({
       banks: data || [],
       pagination: {
@@ -90,17 +144,36 @@ app.get('/api/banks/search', async (req, res) => {
 app.get('/api/banks/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
+    if (!supabase) {
+      // Return demo data with consistent format
+      return res.json({
+        id: id,
+        rssdId: '1234567',
+        fdicCertificateNumber: '12345',
+        bankName: `Demo Bank ${id}`,
+        city: 'Los Angeles',
+        state: 'CA',
+        totalAssets: 1000000000,
+        charterType: 'Commercial Bank',
+        regulator: 'OCC',
+        isActive: true,
+        lastFilingDate: new Date('2023-12-31'),
+        createdAt: new Date('2023-01-01'),
+        updatedAt: new Date('2023-12-31')
+      });
+    }
+
     const { data, error } = await supabase
       .from('banks')
       .select('*')
       .eq('id', id)
       .single();
-    
+
     if (error) {
       return res.status(404).json({ error: 'Bank not found' });
     }
-    
+
     return res.json(data);
   } catch (error) {
     console.error('Error getting bank:', error);
@@ -108,11 +181,35 @@ app.get('/api/banks/:id', async (req, res) => {
   }
 });
 
-// Bank selection routes
+// Bank selection routes (demo mode)
 app.get('/api/banks/selection', async (req, res) => {
   try {
+    if (!supabase) {
+      // Return demo data with consistent format
+      return res.json({
+        selectedBanks: [
+          { 
+            id: '1', 
+            rssdId: '1234567',
+            fdicCertificateNumber: '12345',
+            bankName: 'Demo Bank 1', 
+            city: 'Los Angeles',
+            state: 'CA', 
+            totalAssets: 1000000000,
+            charterType: 'Commercial Bank',
+            regulator: 'OCC',
+            isActive: true,
+            lastFilingDate: new Date('2023-12-31'),
+            createdAt: new Date('2023-01-01'),
+            updatedAt: new Date('2023-12-31')
+          }
+        ],
+        count: 1
+      });
+    }
+
     const userId = req.headers['user-id'] as string || 'demo-user';
-    
+
     const { data, error } = await supabase
       .from('bank_selections')
       .select(`
@@ -120,11 +217,11 @@ app.get('/api/banks/selection', async (req, res) => {
         banks (*)
       `)
       .eq('user_id', userId);
-    
+
     if (error) {
       return res.status(500).json({ error: error.message });
     }
-    
+
     return res.json({
       selectedBanks: data || [],
       count: data?.length || 0
@@ -137,35 +234,39 @@ app.get('/api/banks/selection', async (req, res) => {
 
 app.post('/api/banks/selection', async (req, res) => {
   try {
+    if (!supabase) {
+      return res.json({ message: 'Demo mode - selection would be saved' });
+    }
+
     const userId = req.headers['user-id'] as string || 'demo-user';
     const { bankIds } = req.body;
-    
+
     if (!Array.isArray(bankIds) || bankIds.length > 30) {
       return res.status(400).json({ error: 'Maximum 30 banks allowed' });
     }
-    
+
     // Clear existing selections
     await supabase
       .from('bank_selections')
       .delete()
       .eq('user_id', userId);
-    
+
     // Add new selections
     if (bankIds.length > 0) {
       const selections = bankIds.map(bankId => ({
         user_id: userId,
         bank_id: bankId
       }));
-      
+
       const { error } = await supabase
         .from('bank_selections')
         .insert(selections);
-      
+
       if (error) {
         return res.status(500).json({ error: error.message });
       }
     }
-    
+
     return res.json({ message: 'Bank selection updated successfully' });
   } catch (error) {
     console.error('Error updating bank selection:', error);
@@ -175,19 +276,23 @@ app.post('/api/banks/selection', async (req, res) => {
 
 app.post('/api/banks/selection/add', async (req, res) => {
   try {
+    if (!supabase) {
+      return res.json({ message: 'Demo mode - bank would be added' });
+    }
+
     const userId = req.headers['user-id'] as string || 'demo-user';
     const { bankId } = req.body;
-    
+
     // Check current selection count
     const { count } = await supabase
       .from('bank_selections')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
-    
+
     if (count && count >= 30) {
       return res.status(400).json({ error: 'Maximum 30 banks already selected' });
     }
-    
+
     // Add bank to selection
     const { error } = await supabase
       .from('bank_selections')
@@ -195,11 +300,11 @@ app.post('/api/banks/selection/add', async (req, res) => {
         user_id: userId,
         bank_id: bankId
       });
-    
+
     if (error) {
       return res.status(500).json({ error: error.message });
     }
-    
+
     return res.json({ message: 'Bank added to selection' });
   } catch (error) {
     console.error('Error adding bank to selection:', error);
@@ -209,19 +314,23 @@ app.post('/api/banks/selection/add', async (req, res) => {
 
 app.delete('/api/banks/selection/remove', async (req, res) => {
   try {
+    if (!supabase) {
+      return res.json({ message: 'Demo mode - bank would be removed' });
+    }
+
     const userId = req.headers['user-id'] as string || 'demo-user';
     const { bankId } = req.body;
-    
+
     const { error } = await supabase
       .from('bank_selections')
       .delete()
       .eq('user_id', userId)
       .eq('bank_id', bankId);
-    
+
     if (error) {
       return res.status(500).json({ error: error.message });
     }
-    
+
     return res.json({ message: 'Bank removed from selection' });
   } catch (error) {
     console.error('Error removing bank from selection:', error);
@@ -231,17 +340,21 @@ app.delete('/api/banks/selection/remove', async (req, res) => {
 
 app.delete('/api/banks/selection/clear', async (req, res) => {
   try {
+    if (!supabase) {
+      return res.json({ message: 'Demo mode - selection would be cleared' });
+    }
+
     const userId = req.headers['user-id'] as string || 'demo-user';
-    
+
     const { error } = await supabase
       .from('bank_selections')
       .delete()
       .eq('user_id', userId);
-    
+
     if (error) {
       return res.status(500).json({ error: error.message });
     }
-    
+
     return res.json({ message: 'Bank selection cleared' });
   } catch (error) {
     console.error('Error clearing bank selection:', error);
@@ -253,4 +366,5 @@ app.delete('/api/banks/selection/clear', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Economy Simulator Backend running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  console.log(`🌐 Supabase: ${supabase ? 'Connected' : 'Demo Mode'}`);
 });

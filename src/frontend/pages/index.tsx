@@ -1,49 +1,21 @@
-import React from 'react';
-import { QueryClient, QueryClientProvider } from 'react-query';
-import { Toaster } from 'react-hot-toast';
-import BankSelectionDemo from '../components/BankSelection/BankSelectionDemo';
-
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 const HomePage: React.FC = () => {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to bank selection page
+    router.push('/BankSelection');
+  }, [router]);
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <div>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-            },
-            success: {
-              duration: 3000,
-              iconTheme: {
-                primary: '#10B981',
-                secondary: '#fff',
-              },
-            },
-            error: {
-              duration: 5000,
-              iconTheme: {
-                primary: '#EF4444',
-                secondary: '#fff',
-              },
-            },
-          }}
-        />
-        <BankSelectionDemo />
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Economy Simulator</h1>
+        <p className="text-gray-600">Redirecting to Bank Selection...</p>
       </div>
-    </QueryClientProvider>
+    </div>
   );
 };
 
