@@ -2,7 +2,7 @@ services:
   - type: web
     name: Economy-Simulator
     env: node
-    buildCommand: npm install --include=dev && npm run build
+    buildCommand: npm install && npm run build
     startCommand: npm start
     rootDir: src/backend
     plan: free
