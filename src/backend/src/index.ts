@@ -9,28 +9,28 @@ import { createClient } from '@supabase/supabase-js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env['PORT'] || 3001;
 
 // Initialize Supabase client
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env['SUPABASE_URL']!;
+const supabaseServiceKey = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env['FRONTEND_URL'] || 'http://localhost:3000',
   credentials: true
 }));
 app.use(morgan('combined'));
 app.use(express.json());
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env['NODE_ENV'] || 'development'
   });
 });
 
@@ -73,7 +73,7 @@ app.get('/api/banks/search', async (req, res) => {
       return res.status(500).json({ error: error.message });
     }
     
-    res.json({
+    return res.json({
       banks: data || [],
       pagination: {
         page: parseInt(page as string),
@@ -83,7 +83,7 @@ app.get('/api/banks/search', async (req, res) => {
     });
   } catch (error) {
     console.error('Error searching banks:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -101,10 +101,10 @@ app.get('/api/banks/:id', async (req, res) => {
       return res.status(404).json({ error: 'Bank not found' });
     }
     
-    res.json(data);
+    return res.json(data);
   } catch (error) {
     console.error('Error getting bank:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -125,13 +125,13 @@ app.get('/api/banks/selection', async (req, res) => {
       return res.status(500).json({ error: error.message });
     }
     
-    res.json({
+    return res.json({
       selectedBanks: data || [],
       count: data?.length || 0
     });
   } catch (error) {
     console.error('Error getting bank selection:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -166,10 +166,10 @@ app.post('/api/banks/selection', async (req, res) => {
       }
     }
     
-    res.json({ message: 'Bank selection updated successfully' });
+    return res.json({ message: 'Bank selection updated successfully' });
   } catch (error) {
     console.error('Error updating bank selection:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -200,10 +200,10 @@ app.post('/api/banks/selection/add', async (req, res) => {
       return res.status(500).json({ error: error.message });
     }
     
-    res.json({ message: 'Bank added to selection' });
+    return res.json({ message: 'Bank added to selection' });
   } catch (error) {
     console.error('Error adding bank to selection:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -222,10 +222,10 @@ app.delete('/api/banks/selection/remove', async (req, res) => {
       return res.status(500).json({ error: error.message });
     }
     
-    res.json({ message: 'Bank removed from selection' });
+    return res.json({ message: 'Bank removed from selection' });
   } catch (error) {
     console.error('Error removing bank from selection:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -242,10 +242,10 @@ app.delete('/api/banks/selection/clear', async (req, res) => {
       return res.status(500).json({ error: error.message });
     }
     
-    res.json({ message: 'Bank selection cleared' });
+    return res.json({ message: 'Bank selection cleared' });
   } catch (error) {
     console.error('Error clearing bank selection:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -253,4 +253,4 @@ app.delete('/api/banks/selection/clear', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Economy Simulator Backend running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
-}); 
+});
