@@ -40,9 +40,7 @@
     "clean": "npm run clean:backend && npm run clean:frontend && npm run clean:mcp",
     "clean:backend": "cd src/backend && npm run clean",
     "clean:frontend": "cd src/frontend && npm run clean",
-    "clean:mcp": "cd src/infrastructure/mcp-servers/ffiec-ubpr-mcp-server "clean:mcp": "cd src/infrastructure/mcp-servers/ffiec-ubpr-mcp-server "clean:mcp": "cd src/infrastructure/mcp-servers/ffiec-ubpr-mcp-server && npm run clean""clean:mcp": "cd src/infrastructure/mcp-servers/ffiec-ubpr-mcp-server && npm run clean" npm run clean",
-    "validate:structure": "./scripts/validate-file-structure.sh",
-    "validate": "npm run validate:structure""clean:mcp": "cd src/infrastructure/mcp-servers/ffiec-ubpr-mcp-server && npm run clean" npm run clean",
+    "clean:mcp": "cd src/infrastructure/mcp-servers/ffiec-ubpr-mcp-server && npm run clean",
     "validate:structure": "./scripts/validate-file-structure.sh",
     "validate": "npm run validate:structure"
   },
