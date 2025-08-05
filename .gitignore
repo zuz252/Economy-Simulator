@@ -163,3 +163,4 @@ Desktop.ini
 # Local development
 .local/
 local/ 
+.vercel
